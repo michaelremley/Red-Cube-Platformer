@@ -25,10 +25,26 @@ class Avatar(object):
         self.x = x
         self.y = y
         self.vx = 0.0
+        self.vy = 0.0
+        self.onsurfacex = True
+        self.onsurfacey = False
 
-    def update(self):
+    def update(self, dt):
         """ update the state of the Avatar """
-        self.x += self.vx
+        self.x += self.vx * dt
+        self.y += self.vy * dt
+        if self.onsurfacex:
+            if not (pygame.key.get_pressed(k_a) or pygame.key.get_pressed(k_d)
+                    or pygame.key.get_pressed(k_RIGHT) or pygame.key.get_pressed(k_LEFT)):
+                self.vx = 0
+            self.vy = 0
+        else:
+            self.vy += 0.01 * dt
+        if self.y > 870:
+            self.onsurfacex = True
+            self.y = 870
+            self.vy = 0
+
 
     def __str__(self):
         return "Avatar height=%f, width=%f, x=%f, y=%f" % (self.height,
@@ -38,10 +54,11 @@ class Avatar(object):
 
 class PlatformerModel(object):
     """ Encodes a model of the game state """
-    def __init__(self, size):
+    def __init__(self, size, clock):
         self.platforms = []
         self.width = size[0]
         self.height = size[1]
+        self.dt = 0
         self.platform_width = 100
         self.platform_height = 20
         self.platform_space = 10
@@ -56,10 +73,13 @@ class PlatformerModel(object):
                                          x,
                                          y))
         self.avatar = Avatar(20, 100, 200, self.height - 30)
+        self.clock = clock
 
     def update(self):
         """ Update the game state (currently only tracking the avatar) """
-        self.avatar.update()
+        self.clock.tick()
+        self.dt = self.clock.get_time()
+        self.avatar.update(self.dt)
 
     def __str__(self):
         output_lines = []

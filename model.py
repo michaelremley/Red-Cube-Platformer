@@ -15,10 +15,10 @@ class Brick(object):
                                                           self.width,
                                                           self.x,
                                                           self.y)
-class Paddle(object):
-    """ Encodes the state of the paddle in the game """
+class Avatar(object):
+    """ Encodes the state of the player's Avatar in the game """
     def __init__(self, height, width, x, y):
-        """ Initialize a paddle with the specified height, width,
+        """ Initialize an Avatar with the specified height, width,
             and position (x,y) """
         self.height = height
         self.width = width
@@ -27,15 +27,15 @@ class Paddle(object):
         self.vx = 0.0
 
     def update(self):
-        """ update the state of the paddle """
+        """ update the state of the Avatar """
         self.x += self.vx
 
     def __str__(self):
-        return "Paddle height=%f, width=%f, x=%f, y=%f" % (self.height,
+        return "Avatar height=%f, width=%f, x=%f, y=%f" % (self.height,
                                                            self.width,
                                                            self.x,
                                                            self.y)
-                                                           
+
 class BrickBreakerModel(object):
     """ Encodes a model of the game state """
     def __init__(self, size):
@@ -55,17 +55,17 @@ class BrickBreakerModel(object):
                                          self.brick_width,
                                          x,
                                          y))
-        self.paddle = Paddle(20, 100, 200, self.height - 30)
+        self.avatar = Avatar(20, 100, 200, self.height - 30)
 
     def update(self):
-        """ Update the game state (currently only tracking the paddle) """
-        self.paddle.update()
+        """ Update the game state (currently only tracking the avatar) """
+        self.avatar.update()
 
     def __str__(self):
         output_lines = []
         # convert each brick to a string for outputting
         for brick in self.bricks:
             output_lines.append(str(brick))
-        output_lines.append(str(self.paddle))
+        output_lines.append(str(self.avatar))
         # print one item per line
         return "\n".join(output_lines)

@@ -1,5 +1,5 @@
 """
-BrickBreaker keyboard controller code
+Platformer keyboard controller code
 """
 
 import pygame.locals

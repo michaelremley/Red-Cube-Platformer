@@ -13,23 +13,22 @@ and modular code.
 
 import time
 import pygame
-from model import BrickBreakerModel
+from model import PlatformerModel
 from view import PyGameWindowView
 from controller.keyboard_controller import PyGameKeyboardController
-from controller.mouse_controller import PyGameMouseController
 
 
 def start_game(size):
     """
-    Given screen 'size' as (x,y) tuple, start BrickBreaker game
+    Given screen 'size' as (x,y) tuple, start platformer game
     """
     pygame.init()
 
-    model = BrickBreakerModel(size)
+    model = PlatformerModel(size)
     print(model)
     view = PyGameWindowView(model, size)
-    #controller = PyGameKeyboardController(model)
-    controller = PyGameMouseController(model)
+    controller = PyGameKeyboardController(model)
+
 
     running = True
     while running:

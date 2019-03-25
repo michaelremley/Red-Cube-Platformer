@@ -1,9 +1,9 @@
 """
-BrickBreaker model code
+Platformer model code
 """
 
-class Brick(object):
-    """ Encodes the state of a brick in the game """
+class Platform(object):
+    """ Encodes the state of a platform in the game """
     def __init__(self,height,width,x,y):
         self.height = height
         self.width = width
@@ -11,7 +11,7 @@ class Brick(object):
         self.y = y
 
     def __str__(self):
-        return "Brick height=%f, width=%f, x=%f, y=%f" % (self.height,
+        return "Platform height=%f, width=%f, x=%f, y=%f" % (self.height,
                                                           self.width,
                                                           self.x,
                                                           self.y)
@@ -36,23 +36,23 @@ class Avatar(object):
                                                            self.x,
                                                            self.y)
 
-class BrickBreakerModel(object):
+class PlatformerModel(object):
     """ Encodes a model of the game state """
     def __init__(self, size):
-        self.bricks = []
+        self.platforms = []
         self.width = size[0]
         self.height = size[1]
-        self.brick_width = 100
-        self.brick_height = 20
-        self.brick_space = 10
-        for x in range(self.brick_space,
-                       self.width - self.brick_space - self.brick_width,
-                       self.brick_width + self.brick_space):
-            for y in range(self.brick_space,
+        self.platform_width = 100
+        self.platform_height = 20
+        self.platform_space = 10
+        for x in range(self.platform_space,
+                       self.width - self.platform_space - self.platform_width,
+                       self.platform_width + self.platform_space):
+            for y in range(self.platform_space,
                            self.height//2,
-                           self.brick_height + self.brick_space):
-                self.bricks.append(Brick(self.brick_height,
-                                         self.brick_width,
+                           self.platform_height + self.platform_space):
+                self.platforms.append(Platform(self.platform_height,
+                                         self.platform_width,
                                          x,
                                          y))
         self.avatar = Avatar(20, 100, 200, self.height - 30)
@@ -63,9 +63,9 @@ class BrickBreakerModel(object):
 
     def __str__(self):
         output_lines = []
-        # convert each brick to a string for outputting
-        for brick in self.bricks:
-            output_lines.append(str(brick))
+        # convert each platform to a string for outputting
+        for platform in self.platforms:
+            output_lines.append(str(platform))
         output_lines.append(str(self.avatar))
         # print one item per line
         return "\n".join(output_lines)

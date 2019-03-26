@@ -17,7 +17,7 @@ def start_game(size):
     Given screen 'size' as (x,y) tuple, start platformer game
     """
     pygame.init()
-    pygame.key.set_repeat(100,100)
+    pygame.key.set_repeat(50,1)
     clock = pygame.time.Clock()
     model = PlatformerModel(size, clock)
     print(model)
@@ -28,15 +28,17 @@ def start_game(size):
     running = True
     while running:
         for event in pygame.event.get():
+
             if event.type == pygame.locals.QUIT:
                 running = False
-            controller.handle_event(event)
+            controller.handle_keys(pygame.key.get_pressed())
         model.update()
         view.draw()
+
         time.sleep(.001)
 
     pygame.quit()
 
 if __name__ == '__main__':
-    size = (1800, 900)
+    size = (900, 900)
     start_game(size)

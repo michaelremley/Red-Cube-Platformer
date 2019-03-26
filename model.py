@@ -17,7 +17,7 @@ class Platform(object):
                                                           self.y)
 class Avatar(object):
     """ Encodes the state of the player's Avatar in the game """
-    def __init__(self, height, width, x, y):
+    def __init__(self, height, width, x, y, screensize):
         """ Initialize an Avatar with the specified height, width,
             and position (x,y) """
         self.height = height
@@ -28,22 +28,26 @@ class Avatar(object):
         self.vy = 0.0
         self.onsurfacex = True
         self.onsurfacey = False
+        self.screensize = screensize
 
     def update(self, dt):
         """ update the state of the Avatar """
         self.x += self.vx * dt
         self.y += self.vy * dt
         if self.onsurfacex:
-            if not (pygame.key.get_pressed(k_a) or pygame.key.get_pressed(k_d)
-                    or pygame.key.get_pressed(k_RIGHT) or pygame.key.get_pressed(k_LEFT)):
-                self.vx = 0
+            self.vx *= 0.75
             self.vy = 0
         else:
+            self.vx *= 0.90
             self.vy += 0.01 * dt
         if self.y > 870:
             self.onsurfacex = True
             self.y = 870
             self.vy = 0
+        if self.x < 0:
+            self.x = 0
+        if self.x > self.screensize[0]-self.width:
+            self.x = self.screensize[0]-self.width
 
 
     def __str__(self):
@@ -72,7 +76,7 @@ class PlatformerModel(object):
                                          self.platform_width,
                                          x,
                                          y))
-        self.avatar = Avatar(20, 100, 200, self.height - 30)
+        self.avatar = Avatar(20, 20, 200, self.height - 30, size)
         self.clock = clock
 
     def update(self):

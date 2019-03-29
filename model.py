@@ -24,26 +24,95 @@ class Avatar(object):
         self.width = width
         self.x = x
         self.y = y
+        self.xnew = x
+        self.ynew = y
         self.vx = 0.0
         self.vy = 0.0
-        self.onsurfacex = True
-        self.onsurfacey = False
+        self.sensitivity = 0.33
+        self.inputs = []
+        self.collisions = []
         self.screensize = screensize
 
-    def update(self, dt):
-        """ update the state of the Avatar """
-        self.x += self.vx * dt
-        self.y += self.vy * dt
-        if self.onsurfacex:
-            self.vx *= 0.75
-            self.vy = 0
+    def addinput(self, input):
+        if not input in self.inputs:
+            self.inputs.append(input)
+
+    def removeinput(self, input):
+        if input in self.inputs:
+            self.inputs.remove(input)
+
+    def controls(self):
+        if 'LEFT' in self.inputs and 'RIGHT' in self.inputs:
+            self.vx = 0
+        elif 'LEFT' in self.inputs:
+            if not 'LEFT' in self.collisions:
+                self.vx = -self.sensitivity
+            else:
+                self.vy = self.vy * 0.75
+        elif 'RIGHT' in self.inputs:
+            if not 'RIGHT' in self.collisions:
+                self.vx = self.sensitivity
+            else:
+                self.vy = self.vy * 0.75
         else:
-            self.vx *= 0.90
-            self.vy += 0.01 * dt
+            self.vx = 0
+        if 'JUMP' in self.inputs:
+            if 'BOTTOM' in self.collisions:
+                self.collisions.remove('BOTTOM')
+                self.vy = -1.25
+            elif 'LEFT' in self.collisions:
+                self.collisions.remove('LEFT')
+                self.vy = -1.25
+                self.vx = self.sensitivity * 2
+            elif 'RIGHT' in self.collisions:
+                self.collisions.remove('RIGHT')
+                self.vy = -1.25
+                self.vx = -self.sensitivity * 2
+
+    def check_collisions(self, dt, platforms):
+        for p in platforms:
+            if p.x <= self.x+self.width+self.vx*dt and self.x+self.vx*dt <= p.x+p.width:
+                if self.y+self.height+self.vy*dt >= p.y and p.y >= self.y+self.vy*dt:
+                    self.collisions.append('BOTTOM')
+                    self.ynew = p.y-self.height
+                    self.vx = 0
+                elif self.y+self.vy*dt <= p.y+p.height and p.y+p.height <= self.y+self.height+self.vy*dt:
+                    self.collisions.append('TOP')
+                    self.ynew = p.y+p.height
+            if p.y < self.y+self.height+self.vy*dt and self.y+self.vy*dt < p.y+p.height:
+                if self.x+self.vx*dt <= p.x+p.width and p.x+p.width <= self.x+self.width+self.vx*dt:
+                    self.collisions.append('LEFT')
+                    self.xnew = p.x+p.width
+                    self.vx = 0
+                elif self.x+self.width+self.vx*dt >= p.x and p.x >= self.x+self.vx*dt:
+                    self.collisions.append('RIGHT')
+                    self.xnew = p.x-self.width
+                    self.vx = 0
+
+    def resolve_collisions(self):
+        if 'LEFT' in self.collisions or 'RIGHT' in self.collisions:
+            self.x = self.xnew
+        if 'TOP' in self.collisions or 'BOTTOM' in self.collisions:
+            self.y = self.ynew
+            self.vy = 0
+
+
+    def update(self, dt, platforms):
+        """ update the state of the Avatar """
+        self.collisions = []
+        self.check_collisions(dt, platforms)
+        self.controls()
+        self.resolve_collisions()
         if self.y > 870:
-            self.onsurfacex = True
+            self.collisions.append('BOTTOM')
             self.y = 870
             self.vy = 0
+        elif ('LEFT' in self.collisions and 'LEFT' in self.inputs) or ('RIGHT' in self.collisions and 'RIGHT' in self.inputs):
+            self.vy += 0.0002 * dt
+        else:
+            self.vy += 0.002 * dt
+        self.x += self.vx*dt
+        self.y += self.vy*dt
         if self.x < 0:
             self.x = 0
         if self.x > self.screensize[0]-self.width:
@@ -63,27 +132,27 @@ class PlatformerModel(object):
         self.width = size[0]
         self.height = size[1]
         self.dt = 0
-        self.platform_width = 100
-        self.platform_height = 20
-        self.platform_space = 10
+        self.platform_width = 200
+        self.platform_height = 200
+        self.platform_space = 200
         for x in range(self.platform_space,
                        self.width - self.platform_space - self.platform_width,
                        self.platform_width + self.platform_space):
             for y in range(self.platform_space,
-                           self.height//2,
+                           self.height - 100,
                            self.platform_height + self.platform_space):
                 self.platforms.append(Platform(self.platform_height,
                                          self.platform_width,
                                          x,
                                          y))
-        self.avatar = Avatar(20, 20, 200, self.height - 30, size)
+        self.avatar = Avatar(20, 20, 300, self.height - 550, size)
         self.clock = clock
 
     def update(self):
         """ Update the game state (currently only tracking the avatar) """
         self.clock.tick()
         self.dt = self.clock.get_time()
-        self.avatar.update(self.dt)
+        self.avatar.update(self.dt, self.platforms)
 
     def __str__(self):
         output_lines = []

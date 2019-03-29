@@ -12,14 +12,15 @@ class PyGameKeyboardController(object):
 
     def handle_keys(self,keys):
         """ Left and right presses modify the x velocity of the avatar """
-        if keys[pygame.K_LEFT]:
-            self.model.avatar.vx += -self.sensitivity
-        if keys[pygame.K_RIGHT]:
-            self.model.avatar.vx += self.sensitivity
-        if keys[pygame.K_a]:
-            self.model.avatar.vx += -self.sensitivity
-        if keys[pygame.K_d]:
-            self.model.avatar.vx += self.sensitivity
-        if keys[pygame.K_SPACE] and self.model.avatar.onsurfacex == True:
-            self.model.avatar.onsurfacex = False
-            self.model.avatar.vy = -2
+        if keys[pygame.K_LEFT] or keys[pygame.K_a]:
+            self.model.avatar.addinput('LEFT')
+        else:
+            self.model.avatar.removeinput('LEFT')
+        if keys[pygame.K_RIGHT] or keys[pygame.K_d]:
+            self.model.avatar.addinput('RIGHT')
+        else:
+            self.model.avatar.removeinput('RIGHT')
+        if keys[pygame.K_SPACE] or keys[pygame.K_UP] or keys[pygame.K_w]:
+            self.model.avatar.addinput('JUMP')
+        else:
+            self.model.avatar.removeinput('JUMP')

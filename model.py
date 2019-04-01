@@ -69,30 +69,40 @@ class Avatar(object):
                 self.collisions.remove('RIGHT')
                 self.vy = -1.25
                 self.vx = -self.sensitivity * 2
+            elif 'TOP' in self.collisions:
+                self.collisions.remove('TOP')
 
     def check_collisions(self, dt, platforms):
+        self.xnew = self.x + self.vx*dt
+        self.ynew = self.y + self.vy*dt
         for p in platforms:
-            if p.x <= self.x+self.width+self.vx*dt and self.x+self.vx*dt <= p.x+p.width:
-                if self.y+self.height+self.vy*dt >= p.y and p.y >= self.y+self.vy*dt:
+            if p.x <= self.xnew+self.width and self.width+self.xnew <= p.x+p.width:
+                if self.ynew+self.height >= p.y and p.y >= self.ynew:
                     self.collisions.append('BOTTOM')
                     self.ynew = p.y-self.height
                     self.vx = 0
-                elif self.y+self.vy*dt <= p.y+p.height and p.y+p.height <= self.y+self.height+self.vy*dt:
+                    self.vy = 0
+                elif self.ynew <= p.y+p.height and p.y+p.height <= self.ynew+self.height:
                     self.collisions.append('TOP')
                     self.ynew = p.y+p.height
-            if p.y < self.y+self.height+self.vy*dt and self.y+self.vy*dt < p.y+p.height:
+                    self.vx = 0
+                    self.vy = 0
+            if p.y < self.ynew+self.height+self.vy*dt and self.ynew+self.vy*dt < p.y+p.height:
                 if self.x+self.vx*dt <= p.x+p.width and p.x+p.width <= self.x+self.width+self.vx*dt:
                     self.collisions.append('LEFT')
                     self.xnew = p.x+p.width
                     self.vx = 0
+                    self.vy = 0
                 elif self.x+self.width+self.vx*dt >= p.x and p.x >= self.x+self.vx*dt:
                     self.collisions.append('RIGHT')
                     self.xnew = p.x-self.width
                     self.vx = 0
+                    self.vy = 0
 
     def resolve_collisions(self):
         if 'LEFT' in self.collisions or 'RIGHT' in self.collisions:
             self.x = self.xnew
+            self.vx = 0
         if 'TOP' in self.collisions or 'BOTTOM' in self.collisions:
             self.y = self.ynew
             self.vy = 0
@@ -102,18 +112,21 @@ class Avatar(object):
         """ update the state of the Avatar """
         self.collisions = []
         self.check_collisions(dt, platforms)
-        self.controls()
-        if self.y > 870:
+        if self.y+self.vy*dt > 1080-self.height:
             self.collisions.append('BOTTOM')
-            self.y = 870
+            self.ynew = 1080-self.height
             self.vy = 0
+        self.x = self.xnew
+        self.y = self.ynew
+        self.controls()
         self.resolve_collisions()
+
+
         if ('LEFT' in self.collisions and 'LEFT' in self.inputs) or ('RIGHT' in self.collisions and 'RIGHT' in self.inputs):
             self.vy += 0.0002 * dt
-        else:
+        elif not ('TOP' in self.collisions or 'BOTTOM' in self.collisions):
             self.vy += 0.002 * dt
-        self.x += self.vx*dt
-        self.y += self.vy*dt
+
         if self.x < 0:
             self.x = 0
         if self.x > self.screensize[0]*3-self.width:
@@ -162,14 +175,14 @@ class PlatformerModel(object):
         self.autoscrollspeed = 0.1
         self.dt = 0
 
-        self.avatar = Avatar(20, 20, 400, self.view_height - 550, size)
+        self.avatar = Avatar(20, 20, 400, self.view_height - 650, size)
         self.clock = clock
 
     def update_platforms(self):
         self.platforms = []
         for i in range(3):
             for p in self.stages[i].platforms:
-                p.x += i*self.view_width
+                p.x = p.x%self.view_width + i*self.view_width
                 self.platforms.append(p)
 
     def update(self):

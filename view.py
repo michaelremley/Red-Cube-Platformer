@@ -31,6 +31,6 @@ class PyGameWindowView(object):
                                      self.model.avatar.y,
                                      self.model.avatar.width,
                                      self.model.avatar.height))
-        print(self.model.avatar.x)
-        print(self.model.left_edge)
+        #print(self.model.avatar.x)
+        #print(self.model.left_edge)
         pygame.display.update()

@@ -141,27 +141,41 @@ class Avatar(object):
                                                            self.y)
 
 class Stage(object):
-    def __init__(self, size):
-        self.platforms = []
+    def __init__(self, size, platforms):
+        self.platforms = platforms
         self.width = size[0]
         self.height = size[1]
         self.platform_width = 200
-        self.platform_height = 200
+        self.platform_height = 20
         self.platform_space = 200
         self.generate_platforms()
 
     def generate_platforms(self):
-        for x in range(self.platform_space,
-                       self.width - self.platform_space - self.platform_width,
-                       self.platform_width + self.platform_space):
-            for y in range(self.platform_space,
-                           self.height - 100,
-                           self.platform_height + self.platform_space):
-                self.platforms.append(Platform(self.platform_height,
-                                         self.platform_width,
-                                         x,
-                                         y))
+        self.platforms.append(Platform(self.platform_height,
+                                    self.width,
+                                     0,
+                                     self.height-self.platform_height))
 
+size = (1920, 1080)
+screenbottom = 980
+pit1 = Stage(size,
+[Platform(40,size[0]/2,0,screenbottom),
+Platform(40,size[0]/2,1000,screenbottom)]
+)
+
+pit2 = Stage(size,
+[Platform(40,200,0,screenbottom),
+Platform(40,200,400,screenbottom),
+Platform(40,200,800,screenbottom)]
+)
+
+pit3 = Stage(size,
+[Platform(40,200,0,screenbottom),
+Platform(40,200,400,screenbottom-300),
+Platform(40,100,600,screenbottom-200),
+Platform(300,40,600,screenbottom-500),
+Platform(40,200,800,screenbottom)]
+)
 
 class PlatformerModel(object):
     """ Encodes a model of the game state """
@@ -169,7 +183,7 @@ class PlatformerModel(object):
         self.platforms = []
         self.view_width = size[0]
         self.view_height = size[1]
-        self.stages = [Stage(size) for i in range(3)]
+        self.stages = [pit1, pit1, pit3, pit3]
         self.update_platforms()
         self.left_edge = 1920
         self.autoscrollspeed = 0.1

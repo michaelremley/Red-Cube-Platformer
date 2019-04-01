@@ -32,6 +32,7 @@ class Avatar(object):
         self.inputs = []
         self.collisions = []
         self.screensize = screensize
+        self.x += 1920
 
     def addinput(self, input):
         if not input in self.inputs:
@@ -101,24 +102,23 @@ class Avatar(object):
         """ update the state of the Avatar """
         self.collisions = []
         self.check_collisions(dt, platforms)
+        self.controls()
         if self.y > 870:
             self.collisions.append('BOTTOM')
             self.y = 870
             self.vy = 0
-        elif ('LEFT' in self.collisions and 'LEFT' in self.inputs) or ('RIGHT' in self.collisions and 'RIGHT' in self.inputs):
+        self.resolve_collisions()
+        if ('LEFT' in self.collisions and 'LEFT' in self.inputs) or ('RIGHT' in self.collisions and 'RIGHT' in self.inputs):
             self.vy += 0.0002 * dt
         else:
             self.vy += 0.002 * dt
-        self.controls()
-        self.resolve_collisions()
-
-
         self.x += self.vx*dt
         self.y += self.vy*dt
         if self.x < 0:
             self.x = 0
-        if self.x > self.screensize[0]-self.width:
-            self.x = self.screensize[0]-self.width
+        if self.x > self.screensize[0]*3-self.width:
+            self.x = self.screensize[0]*3-self.width
+
 
 
     def __str__(self):
@@ -127,16 +127,17 @@ class Avatar(object):
                                                            self.x,
                                                            self.y)
 
-class PlatformerModel(object):
-    """ Encodes a model of the game state """
-    def __init__(self, size, clock):
+class Stage(object):
+    def __init__(self, size):
         self.platforms = []
         self.width = size[0]
         self.height = size[1]
-        self.dt = 0
         self.platform_width = 200
         self.platform_height = 200
         self.platform_space = 200
+        self.generate_platforms()
+
+    def generate_platforms(self):
         for x in range(self.platform_space,
                        self.width - self.platform_space - self.platform_width,
                        self.platform_width + self.platform_space):
@@ -147,14 +148,44 @@ class PlatformerModel(object):
                                          self.platform_width,
                                          x,
                                          y))
-        self.avatar = Avatar(20, 20, 300, self.height - 550, size)
+
+
+class PlatformerModel(object):
+    """ Encodes a model of the game state """
+    def __init__(self, size, clock):
+        self.platforms = []
+        self.view_width = size[0]
+        self.view_height = size[1]
+        self.stages = [Stage(size) for i in range(3)]
+        self.update_platforms()
+        self.left_edge = 1920
+        self.autoscrollspeed = 0.1
+        self.dt = 0
+
+        self.avatar = Avatar(20, 20, 400, self.view_height - 550, size)
         self.clock = clock
+
+    def update_platforms(self):
+        self.platforms = []
+        for i in range(3):
+            for p in self.stages[i].platforms:
+                p.x += i*self.view_width
+                self.platforms.append(p)
 
     def update(self):
         """ Update the game state (currently only tracking the avatar) """
         self.clock.tick()
         self.dt = self.clock.get_time()
+        self.left_edge += self.dt * self.autoscrollspeed
+        if self.left_edge >= 3840:
+            self.left_edge -= 1920
+            self.stages.remove(self.stages[0])
+            self.stages.append(Stage((self.view_width, self.view_height)))
+            self.update_platforms()
+            self.avatar.x -= 1920
         self.avatar.update(self.dt, self.platforms)
+        if 'QUIT' in self.avatar.inputs:
+            return True
 
     def __str__(self):
         output_lines = []

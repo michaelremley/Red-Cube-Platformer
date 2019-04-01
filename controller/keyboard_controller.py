@@ -1,7 +1,7 @@
 """
 Platformer keyboard controller code
 """
-
+import pygame, sys
 import pygame.locals
 
 class PyGameKeyboardController(object):
@@ -24,3 +24,7 @@ class PyGameKeyboardController(object):
             self.model.avatar.addinput('JUMP')
         else:
             self.model.avatar.removeinput('JUMP')
+        if keys[pygame.K_q] or keys[pygame.K_p]:
+            self.model.avatar.addinput('QUIT')
+        else:
+            self.model.avatar.removeinput('QUIT')

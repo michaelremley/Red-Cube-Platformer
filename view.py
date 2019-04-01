@@ -13,7 +13,7 @@ class PyGameWindowView(object):
             specified game screen dimensions (represented as a tuple
             containing the width and height """
         self.model = model
-        self.screen = pygame.display.set_mode(size, pygame.FULLSCREEN)
+        self.screen = pygame.display.set_mode(size)
 
     def draw(self):
         """ Draw the current game state to the screen """
@@ -21,14 +21,16 @@ class PyGameWindowView(object):
         for platform in self.model.platforms:
             pygame.draw.rect(self.screen,
                              pygame.Color(255, 255, 255),
-                             pygame.Rect(platform.x,
+                             pygame.Rect(platform.x-self.model.left_edge,
                                          platform.y,
                                          platform.width,
                                          platform.height))
         pygame.draw.rect(self.screen,
                          pygame.Color(255, 0, 0),
-                         pygame.Rect(self.model.avatar.x,
+                         pygame.Rect(self.model.avatar.x-self.model.left_edge,
                                      self.model.avatar.y,
                                      self.model.avatar.width,
                                      self.model.avatar.height))
+        print(self.model.avatar.x)
+        print(self.model.left_edge)
         pygame.display.update()

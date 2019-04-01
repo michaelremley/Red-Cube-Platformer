@@ -6,7 +6,7 @@ This is a platformer game based on keyboard contol for our Software Design proje
 """
 
 import time
-import pygame
+import pygame, sys
 from model import PlatformerModel
 from view import PyGameWindowView
 from controller.keyboard_controller import PyGameKeyboardController
@@ -31,13 +31,17 @@ def start_game(size):
 
             if event.type == pygame.locals.QUIT:
                 running = False
-            controller.handle_keys(pygame.key.get_pressed())
-        model.update()
+            if controller.handle_keys(pygame.key.get_pressed()):
+                running = False
+
+        if model.update():
+            running = False
         view.draw()
 
         time.sleep(.001)
 
     pygame.quit()
+    sys.exit
 
 if __name__ == '__main__':
     size = (1920, 1080)

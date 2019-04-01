@@ -13,7 +13,7 @@ class PyGameWindowView(object):
             specified game screen dimensions (represented as a tuple
             containing the width and height """
         self.model = model
-        self.screen = pygame.display.set_mode(size)
+        self.screen = pygame.display.set_mode(size,pygame.FULLSCREEN)
 
     def draw(self):
         """ Draw the current game state to the screen """

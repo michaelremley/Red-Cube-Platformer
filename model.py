@@ -160,7 +160,7 @@ size = (1920, 1080)
 screenbottom = 980
 pit1 = Stage(size,
 [Platform(40,size[0]/2,0,screenbottom),
-Platform(40,size[0]/2,1000,screenbottom)]
+Platform(40,size[0]/2,1200,screenbottom)]
 )
 
 pit2 = Stage(size,
@@ -173,8 +173,8 @@ pit3 = Stage(size,
 [Platform(40,200,0,screenbottom),
 Platform(40,200,400,screenbottom-300),
 Platform(40,100,600,screenbottom-200),
-Platform(300,40,600,screenbottom-500),
-Platform(40,200,800,screenbottom)]
+Platform(300,40,600,screenbottom-700),
+Platform(40,200,1000,screenbottom)]
 )
 
 class PlatformerModel(object):
@@ -206,8 +206,8 @@ class PlatformerModel(object):
         self.left_edge += self.dt * self.autoscrollspeed
         if self.left_edge >= 3840:
             self.left_edge -= 1920
-            self.stages.remove(self.stages[0])
-            self.stages.append(Stage((self.view_width, self.view_height)))
+            #self.stages.remove(self.stages[0])
+            self.stages.append(pit1)
             self.update_platforms()
             self.avatar.x -= 1920
         self.avatar.update(self.dt, self.platforms)

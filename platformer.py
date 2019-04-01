@@ -40,5 +40,5 @@ def start_game(size):
     pygame.quit()
 
 if __name__ == '__main__':
-    size = (900, 900)
+    size = (1920, 1080)
     start_game(size)

@@ -101,8 +101,6 @@ class Avatar(object):
         """ update the state of the Avatar """
         self.collisions = []
         self.check_collisions(dt, platforms)
-        self.controls()
-        self.resolve_collisions()
         if self.y > 870:
             self.collisions.append('BOTTOM')
             self.y = 870
@@ -111,6 +109,10 @@ class Avatar(object):
             self.vy += 0.0002 * dt
         else:
             self.vy += 0.002 * dt
+        self.controls()
+        self.resolve_collisions()
+
+
         self.x += self.vx*dt
         self.y += self.vy*dt
         if self.x < 0:

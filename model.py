@@ -127,6 +127,7 @@ class Avatar(object):
         elif not ('TOP' in self.collisions or 'BOTTOM' in self.collisions):
             self.vy += 0.002 * dt
 
+
         if self.x < 0:
             self.x = 0
         if self.x > self.screensize[0]*3-self.width:
@@ -164,7 +165,7 @@ Platform(40,size[0]/2,1200,screenbottom)]
 )
 
 pit2 = Stage(size,
-[Platform(40,200,0,screenbottom),
+[Platform(40,200,200,screenbottom),
 Platform(40,200,400,screenbottom),
 Platform(40,200,800,screenbottom)]
 )
@@ -172,9 +173,25 @@ Platform(40,200,800,screenbottom)]
 pit3 = Stage(size,
 [Platform(40,200,0,screenbottom),
 Platform(40,200,400,screenbottom-300),
-Platform(40,100,600,screenbottom-200),
 Platform(300,40,600,screenbottom-700),
-Platform(40,200,1000,screenbottom)]
+Platform(40,200,1000,screenbottom-700),
+Platform(100,40,600,screenbottom-900),
+Platform(600,40,1200,screenbottom-700),
+Platform(40,300,1200,screenbottom-200)]
+)
+
+ceiling1 = Stage(size,
+[Platform(40,200,0,screenbottom),
+Platform(800,1600,0,0),
+Platform(40,200,1600,screenbottom)]
+)
+
+ceiling2 = Stage(size,
+[Platform(40,200,0,screenbottom),
+Platform(400,1600,0,0),
+Platform(240,40,200,screenbottom-200),
+Platform(200,40,0,screenbottom-600),
+Platform(40,200,1600,screenbottom)]
 )
 
 class PlatformerModel(object):
@@ -183,7 +200,7 @@ class PlatformerModel(object):
         self.platforms = []
         self.view_width = size[0]
         self.view_height = size[1]
-        self.stages = [pit1, pit1, pit3, pit3]
+        self.stages = [ceiling2, ceiling2, ceiling2,ceiling2]
         self.update_platforms()
         self.left_edge = 1920
         self.autoscrollspeed = 0.1

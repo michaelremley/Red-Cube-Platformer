@@ -71,6 +71,7 @@ class Avatar(object):
                 self.vx = -self.sensitivity * 2
             elif 'TOP' in self.collisions:
                 self.collisions.remove('TOP')
+                self.vy+=.002
 
     def check_collisions(self, dt, platforms):
         self.xnew = self.x + self.vx*dt
@@ -102,13 +103,11 @@ class Avatar(object):
     def resolve_collisions(self):
         if 'LEFT' in self.collisions or 'RIGHT' in self.collisions:
             self.x = self.xnew
-            self.vx = 0
         if 'TOP' in self.collisions or 'BOTTOM' in self.collisions:
             self.y = self.ynew
-            self.vy = 0
 
 
-    def update(self, dt, platforms):
+    def update(self, dt, platforms, leftedge):
         """ update the state of the Avatar """
         self.collisions = []
         self.check_collisions(dt, platforms)
@@ -128,10 +127,10 @@ class Avatar(object):
             self.vy += 0.002 * dt
 
 
-        if self.x < 0:
-            self.x = 0
-        if self.x > self.screensize[0]*3-self.width:
-            self.x = self.screensize[0]*3-self.width
+        if self.x < leftedge:
+            self.x = leftedge
+        if self.x > leftedge+self.screensize[0]-self.width:
+            self.x = leftedge+self.screensize[0]-self.width
 
 
 
@@ -149,7 +148,6 @@ class Stage(object):
         self.platform_width = 200
         self.platform_height = 20
         self.platform_space = 200
-        self.generate_platforms()
 
     def generate_platforms(self):
         self.platforms.append(Platform(self.platform_height,
@@ -200,7 +198,25 @@ class PlatformerModel(object):
         self.platforms = []
         self.view_width = size[0]
         self.view_height = size[1]
-        self.stages = [ceiling2, ceiling2, ceiling2,ceiling2]
+        self.stages = [Stage(size,
+        [Platform(40,200,0,screenbottom),
+        Platform(400,1600,0,0),
+        Platform(240,40,200,screenbottom-200),
+        Platform(200,40,0,screenbottom-600),
+        Platform(40,200,1600,screenbottom)]
+        ),Stage(size,
+        [Platform(40,200,0,screenbottom),
+        Platform(400,1600,0,0),
+        Platform(240,40,200,screenbottom-200),
+        Platform(200,40,0,screenbottom-600),
+        Platform(40,200,1600,screenbottom)]
+        ),Stage(size,
+        [Platform(40,200,0,screenbottom),
+        Platform(400,1600,0,0),
+        Platform(240,40,200,screenbottom-200),
+        Platform(200,40,0,screenbottom-600),
+        Platform(40,200,1600,screenbottom)]
+        )]
         self.update_platforms()
         self.left_edge = 1920
         self.autoscrollspeed = 0.1
@@ -213,7 +229,7 @@ class PlatformerModel(object):
         self.platforms = []
         for i in range(3):
             for p in self.stages[i].platforms:
-                p.x = p.x%self.view_width + i*self.view_width
+                p.x = p.x%1920 + (i)*1920
                 self.platforms.append(p)
 
     def update(self):
@@ -223,11 +239,15 @@ class PlatformerModel(object):
         self.left_edge += self.dt * self.autoscrollspeed
         if self.left_edge >= 3840:
             self.left_edge -= 1920
-            #self.stages.remove(self.stages[0])
-            self.stages.append(pit1)
-            self.update_platforms()
             self.avatar.x -= 1920
-        self.avatar.update(self.dt, self.platforms)
+            self.stages.pop(0)
+            self.stages.append(Stage(size,
+            [Platform(40,size[0]/2,0,screenbottom),
+            Platform(40,size[0]/2,1200,screenbottom)]
+            ))
+            self.update_platforms()
+
+        self.avatar.update(self.dt, self.platforms, self.left_edge)
         if 'QUIT' in self.avatar.inputs:
             return True
 

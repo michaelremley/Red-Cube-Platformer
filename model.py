@@ -24,44 +24,37 @@ class Avatar(object):
         self.width = width
         self.x = x
         self.y = y
-
-        #xnew and ynew are a simple way of keeping track of
-        #Avatar's future position to avoid overlap with obstacles
         self.xnew = x
         self.ynew = y
         self.vx = 0.0
         self.vy = 0.0
-
-        #Sensitivity defines maximim speed for user controls
         self.sensitivity = 0.33
         self.inputs = []
         self.collisions = []
         self.screensize = screensize
-
-        #Center avatar for sidescrolling
         self.x += 1920
 
     def addinput(self, input):
-        '''Takes an input from the controller and adds it to the
-        Avatar's list of inputs to handle'''
         if not input in self.inputs:
             self.inputs.append(input)
 
     def removeinput(self, input):
-        '''Removes an input that has been handled from the Avatar's input stream'''
         if input in self.inputs:
             self.inputs.remove(input)
 
     def controls(self):
-        '''Handles inputs from the aavatar's list for input controls, accounting for collisions'''
         if 'LEFT' in self.inputs and 'RIGHT' in self.inputs:
             self.vx = 0
         elif 'LEFT' in self.inputs:
+            if 'RIGHT' in self.collisions:
+                self.collisions[:] = (value for value in self.collisions if value != 'RIGHT')
             if not 'LEFT' in self.collisions:
                 self.vx = -self.sensitivity
             else:
                 self.vy = self.vy * 0.75
         elif 'RIGHT' in self.inputs:
+            if 'LEFT' in self.collisions:
+                self.collisions[:] = (value for value in self.collisions if value != 'LEFT')
             if not 'RIGHT' in self.collisions:
                 self.vx = self.sensitivity
             else:
@@ -69,42 +62,33 @@ class Avatar(object):
         else:
             self.vx = 0
         if 'JUMP' in self.inputs:
-            #Normal Jumping
+
             if 'BOTTOM' in self.collisions:
-                self.collisions.remove('BOTTOM')
+                #self.collisions.remove('BOTTOM')
+                self.collisions[:] = (value for value in self.collisions if value != 'BOTTOM')
                 self.vy = -1.25
-            #Wall Jumping
-            elif 'LEFT' in self.collisions:
+                self.y -= 10
+
+            if 'LEFT' in self.collisions:
                 self.collisions.remove('LEFT')
                 self.vy = -1.25
                 self.vx = self.sensitivity * 2
-            elif 'RIGHT' in self.collisions:
+            if 'RIGHT' in self.collisions:
                 self.collisions.remove('RIGHT')
                 self.vy = -1.25
                 self.vx = -self.sensitivity * 2
-            #Dropping down from ceiling
-            elif 'TOP' in self.collisions:
-                self.collisions.remove('TOP')
-                self.vy+=.002
+            if 'TOP' in self.collisions:
+                #self.collisions.remove('TOP')
+                self.collisions[:] = (value for value in self.collisions if value != 'TOP')
 
     def check_collisions(self, dt, platforms):
-        '''Checks for collisions between the avatar and the platforms, and attempts to resolve them'''
-
-        #Update xnew and ynew to predict collisions
         self.xnew = self.x + self.vx*dt
         self.ynew = self.y + self.vy*dt
-
-        #Sweep through all platforms
         for p in platforms:
-            #Check lateral overlap with platforms
             if p.x <= self.xnew+self.width and self.width+self.xnew <= p.x+p.width:
-                #Check intersection between platform and avatar
                 if self.ynew+self.height >= p.y and p.y >= self.ynew:
-                    #Update Collisions
                     self.collisions.append('BOTTOM')
-                    #Correct ynew to avoid overlap
                     self.ynew = p.y-self.height
-                    #Stop Motion
                     self.vx = 0
                     self.vy = 0
                 elif self.ynew <= p.y+p.height and p.y+p.height <= self.ynew+self.height:
@@ -112,7 +96,6 @@ class Avatar(object):
                     self.ynew = p.y+p.height
                     self.vx = 0
                     self.vy = 0
-            #Check longitudinal overlap with platforms
             if p.y < self.ynew+self.height+self.vy*dt and self.ynew+self.vy*dt < p.y+p.height:
                 if self.x+self.vx*dt <= p.x+p.width and p.x+p.width <= self.x+self.width+self.vx*dt:
                     self.collisions.append('LEFT')
@@ -126,42 +109,38 @@ class Avatar(object):
                     self.vy = 0
 
     def resolve_collisions(self):
-        '''Resolves collisions between Avatar and platforms'''
         if 'LEFT' in self.collisions or 'RIGHT' in self.collisions:
             self.x = self.xnew
+            self.vx = 0
         if 'TOP' in self.collisions or 'BOTTOM' in self.collisions:
             self.y = self.ynew
+            self.vy = 0
 
 
-    def update(self, dt, platforms, leftedge):
-        """ update the position of the Avatar while taking physics, collisions, and controls into account"""
+    def update(self, dt, platforms):
+        """ update the state of the Avatar """
         self.collisions = []
         self.check_collisions(dt, platforms)
-        #prevents avatar from leaving bottom of the stage
         if self.y+self.vy*dt > 1080-self.height:
             self.collisions.append('BOTTOM')
             self.ynew = 1080-self.height
             self.vy = 0
-
-        #update avatar position
         self.x = self.xnew
         self.y = self.ynew
-
-
         self.controls()
         self.resolve_collisions()
 
-        #Gravity (Slower when haning on wall)
+
         if ('LEFT' in self.collisions and 'LEFT' in self.inputs) or ('RIGHT' in self.collisions and 'RIGHT' in self.inputs):
             self.vy += 0.0002 * dt
         elif not ('TOP' in self.collisions or 'BOTTOM' in self.collisions):
             self.vy += 0.002 * dt
 
-        #Prevent avatar from leaving the display area
-        if self.x < leftedge:
-            self.x = leftedge
-        if self.x > leftedge+self.screensize[0]-self.width:
-            self.x = leftedge+self.screensize[0]-self.width
+
+        if self.x < 0:
+            self.x = 0
+        if self.x > self.screensize[0]*3-self.width:
+            self.x = self.screensize[0]*3-self.width
 
 
 
@@ -173,11 +152,19 @@ class Avatar(object):
 
 class Stage(object):
     def __init__(self, size, platforms):
-        '''Generates a Stage object from a list of platforms'''
         self.platforms = platforms
         self.width = size[0]
         self.height = size[1]
+        self.platform_width = 200
+        self.platform_height = 20
+        self.platform_space = 200
+        #self.generate_platforms()
 
+    def generate_platforms(self):
+        self.platforms.append(Platform(self.platform_height,
+                                    self.width,
+                                     0,
+                                     self.height-self.platform_height))
 
 size = (1920, 1080)
 screenbottom = 980
@@ -210,10 +197,13 @@ Platform(40,200,1600,screenbottom)]
 
 ceiling2 = Stage(size,
 [Platform(40,200,0,screenbottom),
-Platform(400,1600,0,0),
-Platform(240,40,200,screenbottom-200),
+Platform(400,1200,0,0),
+Platform(440,40,200,screenbottom-400),
 Platform(200,40,0,screenbottom-600),
-Platform(40,200,1600,screenbottom)]
+Platform(40,200,1600,screenbottom),
+Platform(40,200,1000,screenbottom-400),
+Platform(40,200,1200,screenbottom-200),
+Platform(40,200,1400,screenbottom-100)]
 )
 
 class PlatformerModel(object):
@@ -222,65 +212,34 @@ class PlatformerModel(object):
         self.platforms = []
         self.view_width = size[0]
         self.view_height = size[1]
-        self.stages = [Stage(size,
-        [Platform(40,200,0,screenbottom),
-        Platform(400,1600,0,0),
-        Platform(240,40,200,screenbottom-200),
-        Platform(200,40,0,screenbottom-600),
-        Platform(40,200,1600,screenbottom)]
-        ),Stage(size,
-        [Platform(40,200,0,screenbottom),
-        Platform(400,1600,0,0),
-        Platform(240,40,200,screenbottom-200),
-        Platform(200,40,0,screenbottom-600),
-        Platform(40,200,1600,screenbottom)]
-        ),Stage(size,
-        [Platform(40,200,0,screenbottom),
-        Platform(400,1600,0,0),
-        Platform(240,40,200,screenbottom-200),
-        Platform(200,40,0,screenbottom-600),
-        Platform(40,200,1600,screenbottom)]
-        )]
+        self.stages = [ceiling1, pit3, ceiling1, ceiling2]
         self.update_platforms()
-
-        #Keep track of left edge of display area for auto scrolling
         self.left_edge = 1920
         self.autoscrollspeed = 0.1
         self.dt = 0
 
-        self.avatar = Avatar(20, 20, 400, self.view_height - 650, size)
+        self.avatar = Avatar(20, 20, 400, self.view_height - 400, size)
         self.clock = clock
 
     def update_platforms(self):
-        #Generates platformer area from stages
         self.platforms = []
         for i in range(3):
             for p in self.stages[i].platforms:
-                p.x = p.x%1920 + (i)*1920
+                p.x = p.x%self.view_width + i*self.view_width
                 self.platforms.append(p)
 
     def update(self):
         """ Update the game state (currently only tracking the avatar) """
-
-        #Update clock to allow for time-based physics calculations
         self.clock.tick()
         self.dt = self.clock.get_time()
-
-        #Autoscroll
         self.left_edge += self.dt * self.autoscrollspeed
         if self.left_edge >= 3840:
-            #Shift stages to allow for continuous generation and scrolling
             self.left_edge -= 1920
-            self.avatar.x -= 1920
-            self.stages.pop(0)
-            self.stages.append(Stage(size,
-            [Platform(40,size[0]/2,0,screenbottom),
-            Platform(40,size[0]/2,1200,screenbottom)]
-            ))
+            self.stages.remove(self.stages[0])
+            self.stages.append(pit3)
             self.update_platforms()
-
-        #Update Avatar
-        self.avatar.update(self.dt, self.platforms, self.left_edge)
+            self.avatar.x -= 1920
+        self.avatar.update(self.dt, self.platforms)
         if 'QUIT' in self.avatar.inputs:
             return True
 

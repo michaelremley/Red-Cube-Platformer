@@ -139,8 +139,8 @@ class Avatar(object):
 
         if self.x < 0:
             self.x = 0
-        if self.x > self.screensize[0]*3-self.width:
-            self.x = self.screensize[0]*3-self.width
+        if self.x > self.screensize[0]*4-self.width:
+            self.x = self.screensize[0]*4-self.width
 
 
 
@@ -223,22 +223,25 @@ class PlatformerModel(object):
 
     def update_platforms(self):
         self.platforms = []
-        for i in range(3):
+        for i in range(4):
+            print(i)
             for p in self.stages[i].platforms:
-                p.x = p.x%self.view_width + i*self.view_width
+                p.x = p.x+i*self.view_width# +p.x%self.view_width 
                 self.platforms.append(p)
+                pass
 
     def update(self):
         """ Update the game state (currently only tracking the avatar) """
         self.clock.tick()
         self.dt = self.clock.get_time()
         self.left_edge += self.dt * self.autoscrollspeed
+
         if self.left_edge >= 3840:
             self.left_edge -= 1920
-            self.stages.remove(self.stages[0])
-            self.stages.append(pit3)
-            self.update_platforms()
+            #self.stages.remove(self.stages[0])
+            self.stages.append(self.stages[0])
             self.avatar.x -= 1920
+            self.update_platforms()
         self.avatar.update(self.dt, self.platforms)
         if 'QUIT' in self.avatar.inputs:
             return True

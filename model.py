@@ -107,6 +107,7 @@ class Avatar(object):
             self.vx = 0
         elif 'LEFT' in self.inputs:
             if 'RIGHT' in self.collisions:
+                # Remove all right collisions
                 self.collisions[:] = (value for value in self.collisions if value != 'RIGHT')
             if not 'LEFT' in self.collisions:
                 self.vx = -self.sensitivity
@@ -114,6 +115,7 @@ class Avatar(object):
                 self.vy = self.vy * 0.75
         elif 'RIGHT' in self.inputs:
             if 'LEFT' in self.collisions:
+                # Remove all left collisions
                 self.collisions[:] = (value for value in self.collisions if value != 'LEFT')
             if not 'RIGHT' in self.collisions:
                 self.vx = self.sensitivity
@@ -145,26 +147,26 @@ class Avatar(object):
         self.xnew = self.x + self.vx*dt
         self.ynew = self.y + self.vy*dt
         for p in platforms:
-            if p.x <= self.xnew+self.width and self.width+self.xnew <= p.x+p.width:
-                if self.ynew+self.height >= p.y and p.y >= self.ynew:
+            if p.x <= self.xnew + self.width and self.width + self.xnew <= p.x + p.width:
+                if self.ynew + self.height >= p.y and p.y >= self.ynew:
                     self.collisions.append('BOTTOM')
-                    self.ynew = p.y-self.height
+                    self.ynew = p.y - self.height
                     self.vx = 0
                     self.vy = 0
-                elif self.ynew <= p.y+p.height and p.y+p.height <= self.ynew+self.height:
+                elif self.ynew <= p.y + p.height and p.y + p.height <= self.ynew + self.height:
                     self.collisions.append('TOP')
-                    self.ynew = p.y+p.height
+                    self.ynew = p.y + p.height
                     self.vx = 0
                     self.vy = 0
-            if p.y < self.ynew+self.height+self.vy*dt and self.ynew+self.vy*dt < p.y+p.height:
-                if self.x+self.vx*dt <= p.x+p.width and p.x+p.width <= self.x+self.width+self.vx*dt:
+            if p.y < self.ynew + self.height + self.vy*dt and self.ynew + self.vy*dt < p.y + p.height:
+                if self.x + self.vx*dt <= p.x + p.width and p.x + p.width <= self.x + self.width + self.vx*dt:
                     self.collisions.append('LEFT')
-                    self.xnew = p.x+p.width
+                    self.xnew = p.x + p.width
                     self.vx = 0
                     self.vy = 0
-                elif self.x+self.width+self.vx*dt >= p.x and p.x >= self.x+self.vx*dt:
+                elif self.x + self.width + self.vx*dt >= p.x and p.x >= self.x + self.vx*dt:
                     self.collisions.append('RIGHT')
-                    self.xnew = p.x-self.width
+                    self.xnew = p.x - self.width
                     self.vx = 0
                     self.vy = 0
 

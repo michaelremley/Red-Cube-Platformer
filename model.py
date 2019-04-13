@@ -1,6 +1,8 @@
 """
 Platformer model code
 """
+import copy
+import random
 
 class Platform(object):
     """ Encodes the state of a platform in the game """
@@ -15,6 +17,64 @@ class Platform(object):
                                                           self.width,
                                                           self.x,
                                                           self.y)
+
+class Stage(object):
+    def __init__(self, size, platforms):
+        self.platforms = platforms
+        self.width = size[0]
+        self.height = size[1]
+        self.platform_width = 200
+        self.platform_height = 20
+        self.platform_space = 200
+        #self.generate_platforms()
+
+    def generate_platforms(self):
+        self.platforms.append(Platform(self.platform_height,
+                                    self.width,
+                                     0,
+                                     self.height-self.platform_height))
+
+size = (1920, 1080)
+screenbottom = 1020
+thickness = 60
+pit1 = Stage(size,
+[Platform(thickness,size[0]/2,0,screenbottom),
+Platform(thickness,size[0]/2,1200,screenbottom)]
+)
+
+pit2 = Stage(size,
+[Platform(thickness,300,400,screenbottom),
+Platform(thickness,300,1000,screenbottom),
+Platform(thickness,320,1600,screenbottom)]
+)
+
+pit3 = Stage(size,
+[Platform(thickness,200,0,screenbottom),
+Platform(thickness,200,400,screenbottom-300),
+Platform(300,thickness,600,screenbottom-700),
+Platform(thickness,300,900,screenbottom-700),
+#Platform(100,thickness,600,screenbottom-900),
+Platform(800,thickness,1200,screenbottom-700),
+Platform(thickness,400,1200,screenbottom)]
+)
+
+ceiling1 = Stage(size,
+[Platform(thickness,200,0,screenbottom),
+Platform(800,1600,0,0),
+Platform(thickness,200,1600,screenbottom)]
+)
+
+ceiling2 = Stage(size,
+[Platform(thickness,200,0,screenbottom),
+Platform(400,1200,0,0),
+Platform(500,thickness,200,screenbottom-440),
+Platform(200,thickness,0,screenbottom-640),
+Platform(thickness,200,1600,screenbottom),
+Platform(thickness,200,1000,screenbottom-400),
+Platform(thickness,200,1200,screenbottom-200),
+Platform(thickness,200,1400,screenbottom-100)]
+)
+
 class Avatar(object):
     """ Encodes the state of the player's Avatar in the game """
     def __init__(self, height, width, x, y, screensize):
@@ -32,7 +92,7 @@ class Avatar(object):
         self.inputs = []
         self.collisions = []
         self.screensize = screensize
-        self.x += 1920
+
 
     def addinput(self, input):
         if not input in self.inputs:
@@ -129,6 +189,8 @@ class Avatar(object):
         self.y = self.ynew
         self.controls()
         self.resolve_collisions()
+        # Set terminal velocity to prevent collision bugs
+        self.vy = min(self.vy,1)
 
 
         if ('LEFT' in self.collisions and 'LEFT' in self.inputs) or ('RIGHT' in self.collisions and 'RIGHT' in self.inputs):
@@ -150,71 +212,23 @@ class Avatar(object):
                                                            self.x,
                                                            self.y)
 
-class Stage(object):
-    def __init__(self, size, platforms):
-        self.platforms = platforms
-        self.width = size[0]
-        self.height = size[1]
-        self.platform_width = 200
-        self.platform_height = 20
-        self.platform_space = 200
-        #self.generate_platforms()
-
-    def generate_platforms(self):
-        self.platforms.append(Platform(self.platform_height,
-                                    self.width,
-                                     0,
-                                     self.height-self.platform_height))
-
-size = (1920, 1080)
-screenbottom = 980
-pit1 = Stage(size,
-[Platform(40,size[0]/2,0,screenbottom),
-Platform(40,size[0]/2,1200,screenbottom)]
-)
-
-pit2 = Stage(size,
-[Platform(40,200,200,screenbottom),
-Platform(40,200,400,screenbottom),
-Platform(40,200,800,screenbottom)]
-)
-
-pit3 = Stage(size,
-[Platform(40,200,0,screenbottom),
-Platform(40,200,400,screenbottom-300),
-Platform(300,40,600,screenbottom-700),
-Platform(40,200,1000,screenbottom-700),
-Platform(100,40,600,screenbottom-900),
-Platform(600,40,1200,screenbottom-700),
-Platform(40,300,1200,screenbottom-200)]
-)
-
-ceiling1 = Stage(size,
-[Platform(40,200,0,screenbottom),
-Platform(800,1600,0,0),
-Platform(40,200,1600,screenbottom)]
-)
-
-ceiling2 = Stage(size,
-[Platform(40,200,0,screenbottom),
-Platform(400,1200,0,0),
-Platform(440,40,200,screenbottom-400),
-Platform(200,40,0,screenbottom-600),
-Platform(40,200,1600,screenbottom),
-Platform(40,200,1000,screenbottom-400),
-Platform(40,200,1200,screenbottom-200),
-Platform(40,200,1400,screenbottom-100)]
-)
-
 class PlatformerModel(object):
     """ Encodes a model of the game state """
     def __init__(self, size, clock):
         self.platforms = []
         self.view_width = size[0]
         self.view_height = size[1]
-        self.stages = [ceiling1, pit3, ceiling1, ceiling2]
-        self.update_platforms()
-        self.left_edge = 1920
+        self.stages = [pit1, pit2, pit3, ceiling1, ceiling2]
+        for i in [0,1]:
+            for p in self.stages[i].platforms:
+                p_new = copy.deepcopy(p)
+                p_new.x = p_new.x+i*self.view_width# +p_new.x%self.view_width
+                self.platforms.append(p_new)
+        #self.update_platforms()
+        for platform in self.platforms:
+            if platform.x < -platform.width:
+                self.platforms.remove(platform)
+        self.left_edge = 0
         self.autoscrollspeed = 0.1
         self.dt = 0
 
@@ -222,13 +236,15 @@ class PlatformerModel(object):
         self.clock = clock
 
     def update_platforms(self):
-        self.platforms = []
-        for i in range(4):
-            print(i)
-            for p in self.stages[i].platforms:
-                p.x = p.x+i*self.view_width# +p.x%self.view_width 
-                self.platforms.append(p)
-                pass
+        for platform in self.platforms:
+            if platform.x < -platform.width:
+                self.platforms.remove(platform)
+
+    def append_stage(self):
+        for p in random.choice(self.stages).platforms:
+            p_new = copy.deepcopy(p)
+            p_new.x = p_new.x + self.view_width
+            self.platforms.append(p_new)
 
     def update(self):
         """ Update the game state (currently only tracking the avatar) """
@@ -236,12 +252,14 @@ class PlatformerModel(object):
         self.dt = self.clock.get_time()
         self.left_edge += self.dt * self.autoscrollspeed
 
-        if self.left_edge >= 3840:
+        self.update_platforms()
+
+        if self.left_edge >= 1920:
             self.left_edge -= 1920
-            #self.stages.remove(self.stages[0])
-            self.stages.append(self.stages[0])
+            for platform in self.platforms:
+                platform.x -= 1920
             self.avatar.x -= 1920
-            self.update_platforms()
+            self.append_stage()
         self.avatar.update(self.dt, self.platforms)
         if 'QUIT' in self.avatar.inputs:
             return True

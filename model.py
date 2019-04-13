@@ -232,7 +232,7 @@ class PlatformerModel(object):
         self.autoscrollspeed = 0.1
         self.dt = 0
 
-        self.avatar = Avatar(20, 20, 400, self.view_height - 400, size)
+        self.avatar = Avatar(32, 32, 400, self.view_height - 400, size)
         self.clock = clock
 
     def update_platforms(self):

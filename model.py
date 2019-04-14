@@ -38,10 +38,11 @@ size = (1920, 1080)
 screenbottom = 1020
 thickness = 60
 pit1 = Stage(size,
-[Platform(thickness,size[0]/2,0,screenbottom),
+[Platform(thickness,size[0]/2-100,0,screenbottom),
 Platform(thickness,size[0]/2,1200,screenbottom),
 Platform(thickness, 400, 1000, screenbottom - 400),
-Platform(400, thickness, 1200, screenbottom - 600)]
+Platform(400, thickness, 1200, screenbottom - 600),
+Platform(800, thickness, 600, screenbottom - 900)]
 )
 
 pit2 = Stage(size,
@@ -119,7 +120,7 @@ class Avatar(object):
                 self.vx = -self.sensitivity
             # If we will run into a wall, fall slower
             else:
-                self.vy *= 0.95
+                self.vy *= 0.75
         # Handle right inputs
         elif 'RIGHT' in self.inputs:
             # If moving away from wall, remove those collisions
@@ -131,7 +132,7 @@ class Avatar(object):
                 self.vx = self.sensitivity
             # If we will run into a wall, fall slower
             else:
-                self.vy *= 0.95
+                self.vy *= 0.75
         # If no input, set horizontal speed to zero
         else:
             self.vx = 0
@@ -152,11 +153,13 @@ class Avatar(object):
                 self.vx = -self.sensitivity * 2
             if 'TOP' in self.collisions:
                 self.collisions[:] = (value for value in self.collisions if value != 'TOP')
+                self.y += 2
 
     def check_collisions(self, dt, platforms):
         # Find potential new coordinates
         self.xnew = self.x + self.vx*dt
         self.ynew = self.y + self.vy*dt
+        self.vy += 0.002 * dt
         # Check potential new coordinates for collisions
         for p in platforms:
             # if right of avatar is right of platform left and
@@ -187,18 +190,6 @@ class Avatar(object):
                     self.vx = 0
 
 
-    def resolve_collisions(self):
-        '''
-        Sets velocities to zero as needed for vertical and horizontal collisons
-        '''
-        if 'LEFT' in self.collisions or 'RIGHT' in self.collisions:
-            self.x = self.xnew
-            self.vx = 0
-        if 'TOP' in self.collisions or 'BOTTOM' in self.collisions:
-            self.y = self.ynew
-            self.vy = 0
-
-
     def update(self, dt, platforms):
         """ update the state of the Avatar """
         self.collisions = []
@@ -206,27 +197,18 @@ class Avatar(object):
         if self.y+self.vy*dt > 1080-self.height:
             self.collisions.append('BOTTOM')
             self.ynew = 1079-self.height
-            
         self.x = self.xnew
         self.y = self.ynew
         self.controls(dt)
-        self.resolve_collisions()
+
         # Set terminal velocity to prevent collision bugs
         self.vy = min(self.vy,1)
 
-
-        if ('LEFT' in self.collisions and 'LEFT' in self.inputs) or ('RIGHT' in self.collisions and 'RIGHT' in self.inputs):
-            # Falling speed while on a wall and pushing into the wall
-            self.vy += 0.0002 * dt
-        elif not ('TOP' in self.collisions or 'BOTTOM' in self.collisions):
-            # Airborne falling speed
-            self.vy += 0.002 * dt
-
-
+        # Keep the player from moving off screen
         if self.x < 0:
             self.x = 0
-        if self.x > self.screensize[0]*4-self.width:
-            self.x = self.screensize[0]*4-self.width
+        if self.x > self.screensize[0]-self.width:
+            self.x = self.screensize[0]-self.width
 
 
 

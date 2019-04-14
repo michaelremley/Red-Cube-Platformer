@@ -104,25 +104,35 @@ class Avatar(object):
         if input in self.inputs:
             self.inputs.remove(input)
 
-    def controls(self):
+    def controls(self, dt):
+        # Ignore if both left and right keys are pressed
         if 'LEFT' in self.inputs and 'RIGHT' in self.inputs:
             self.vx = 0
+        # Handle left inputs
         elif 'LEFT' in self.inputs:
+            # If moving away from a wall, get rid of all right collisions
             if 'RIGHT' in self.collisions:
                 # Remove all right collisions
                 self.collisions[:] = (value for value in self.collisions if value != 'RIGHT')
+            # If we aren't going to run into a wall, move left
             if not 'LEFT' in self.collisions:
                 self.vx = -self.sensitivity
+            # If we will run into a wall, fall slower
             else:
-                self.vy = self.vy * 0.75
+                self.vy *= 0.95
+        # Handle right inputs
         elif 'RIGHT' in self.inputs:
+            # If moving away from wall, remove those collisions
             if 'LEFT' in self.collisions:
                 # Remove all left collisions
                 self.collisions[:] = (value for value in self.collisions if value != 'LEFT')
+            # If we won't run into a wall, move right
             if not 'RIGHT' in self.collisions:
                 self.vx = self.sensitivity
+            # If we will run into a wall, fall slower
             else:
-                self.vy = self.vy * 0.75
+                self.vy *= 0.95
+        # If no input, set horizontal speed to zero
         else:
             self.vx = 0
         if 'JUMP' in self.inputs:
@@ -144,8 +154,10 @@ class Avatar(object):
                 self.collisions[:] = (value for value in self.collisions if value != 'TOP')
 
     def check_collisions(self, dt, platforms):
+        # Find potential new coordinates
         self.xnew = self.x + self.vx*dt
         self.ynew = self.y + self.vy*dt
+        # Check potential new coordinates for collisions
         for p in platforms:
             # if right of avatar is right of platform left and
             # left of avatar is left of platform right
@@ -153,12 +165,10 @@ class Avatar(object):
                 if self.ynew + self.height >= p.y and p.y >= self.ynew:
                     self.collisions.append('BOTTOM')
                     self.ynew = p.y - self.height
-                    self.vx = 0
                     self.vy = 0
                 elif self.ynew <= p.y + p.height and p.y + p.height <= self.ynew + self.height:
                     self.collisions.append('TOP')
                     self.ynew = p.y + p.height
-                    self.vx = 0
                     self.vy = 0
             # if top of platform is above bottom of avatar and
             # top of avatar is above bottom of platform
@@ -169,17 +179,18 @@ class Avatar(object):
                     self.collisions.append('RIGHT')
                     self.xnew = p.x - self.width
                     self.vx = 0
-                    self.vy = 0
                 # if left of avatar is left of right edge and
                 # right of avatar is right of right edge
                 elif self.xnew <= p.x + p.width and p.x + p.width <= self.xnew + self.width:
                     self.collisions.append('LEFT')
                     self.xnew = p.x + p.width
                     self.vx = 0
-                    self.vy = 0
 
 
     def resolve_collisions(self):
+        '''
+        Sets velocities to zero as needed for vertical and horizontal collisons
+        '''
         if 'LEFT' in self.collisions or 'RIGHT' in self.collisions:
             self.x = self.xnew
             self.vx = 0
@@ -195,18 +206,20 @@ class Avatar(object):
         if self.y+self.vy*dt > 1080-self.height:
             self.collisions.append('BOTTOM')
             self.ynew = 1079-self.height
-            self.vy = 0
+            
         self.x = self.xnew
         self.y = self.ynew
-        self.controls()
+        self.controls(dt)
         self.resolve_collisions()
         # Set terminal velocity to prevent collision bugs
         self.vy = min(self.vy,1)
 
 
         if ('LEFT' in self.collisions and 'LEFT' in self.inputs) or ('RIGHT' in self.collisions and 'RIGHT' in self.inputs):
+            # Falling speed while on a wall and pushing into the wall
             self.vy += 0.0002 * dt
         elif not ('TOP' in self.collisions or 'BOTTOM' in self.collisions):
+            # Airborne falling speed
             self.vy += 0.002 * dt
 
 

@@ -190,7 +190,7 @@ class Avatar(object):
                     self.vx = 0
 
 
-    def update(self, dt, platforms):
+    def update(self, dt, platforms,left_edge):
         """ update the state of the Avatar """
         self.collisions = []
         self.check_collisions(dt, platforms)
@@ -205,10 +205,10 @@ class Avatar(object):
         self.vy = min(self.vy,1)
 
         # Keep the player from moving off screen
-        if self.x < 0:
-            self.x = 0
-        if self.x > self.screensize[0]-self.width:
-            self.x = self.screensize[0]-self.width
+        if self.x < left_edge:
+            self.x = left_edge
+        if self.x > self.screensize[0]+left_edge-self.width:
+            self.x = self.screensize[0]+left_edge-self.width
 
 
 
@@ -235,7 +235,7 @@ class PlatformerModel(object):
             if platform.x < -platform.width:
                 self.platforms.remove(platform)
         self.left_edge = 0
-        self.autoscrollspeed = 0#0.1
+        self.autoscrollspeed = 0.1
         self.dt = 0
 
         self.avatar = Avatar(32, 32, 400, self.view_height - 400, size)
@@ -266,7 +266,7 @@ class PlatformerModel(object):
                 platform.x -= 1920
             self.avatar.x -= 1920
             self.append_stage()
-        self.avatar.update(self.dt, self.platforms)
+        self.avatar.update(self.dt, self.platforms,self.left_edge)
         if 'QUIT' in self.avatar.inputs:
             return True
 

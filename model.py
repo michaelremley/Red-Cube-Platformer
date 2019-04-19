@@ -133,9 +133,9 @@ class Avatar(object):
             # If we will run into a wall, fall slower
             else:
                 self.vy *= 0.75
-        # If no input, set horizontal speed to zero
+        # If no input, decay horizontal speed
         else:
-            self.vx = 0
+            self.vx *= 0.95
         if 'JUMP' in self.inputs:
 
             if 'BOTTOM' in self.collisions:
@@ -143,14 +143,16 @@ class Avatar(object):
                 self.vy = -1.25
                 self.y -= 10
 
-            if 'LEFT' in self.collisions:
+            elif 'LEFT' in self.collisions:
                 self.collisions.remove('LEFT')
                 self.vy = -1.25
                 self.vx = self.sensitivity * 2
-            if 'RIGHT' in self.collisions:
+                self.y += 2
+            elif 'RIGHT' in self.collisions:
                 self.collisions.remove('RIGHT')
                 self.vy = -1.25
                 self.vx = -self.sensitivity * 2
+                self.x -= 2
             if 'TOP' in self.collisions:
                 self.collisions[:] = (value for value in self.collisions if value != 'TOP')
                 self.y += 2
@@ -237,8 +239,7 @@ class PlatformerModel(object):
         self.left_edge = 0
         self.autoscrollspeed = 0.1
         self.dt = 0
-
-        self.avatar = Avatar(32, 32, 400, self.view_height - 400, size)
+        self.avatar = Avatar(32, 32, self.platforms[1].x+self.platforms[1].width/2, self.view_height - 400, size)
         self.clock = clock
 
     def update_platforms(self):

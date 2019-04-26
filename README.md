@@ -7,6 +7,7 @@
 ## Getting Started
 Requires pygame module
 1. Run platformer.py to start
+1. Press q or p to quit
 
 ## Usage/controls
 Up/w/space to JUMP

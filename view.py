@@ -30,15 +30,15 @@ class PyGameWindowView(object):
                                          platform.width,
                                          platform.height))
         # Draw avatar as red square
-        #pygame.draw.rect(self.screen,
-        #                 pygame.Color(255, 0, 0),
-        #                 pygame.Rect(self.model.avatar.x-self.model.left_edge,
-        #                             self.model.avatar.y,
-        #                             self.model.avatar.width,
-        #                             self.model.avatar.height))
+        pygame.draw.rect(self.screen,
+                        pygame.Color(255, 0, 0),
+                        pygame.Rect(self.model.avatar.x-self.model.left_edge,
+                                    self.model.avatar.y,
+                                    self.model.avatar.width,
+                                    self.model.avatar.height))
 
-        self.screen.blit(pygame.image.load('avatar.png').convert_alpha(),[self.model.avatar.x-self.model.left_edge,
-                                self.model.avatar.y])
+         # self.screen.blit(pygame.image.load('avatar.png').convert_alpha(),[self.model.avatar.x-self.model.left_edge,
+        #                         self.model.avatar.y])
 
         #print(self.model.avatar.x)
         #print(self.model.left_edge)
